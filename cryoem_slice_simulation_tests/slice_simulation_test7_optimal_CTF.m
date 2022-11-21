@@ -11,22 +11,22 @@ for n = 1:length(defocus_vals);
     subplot(5,3,n);
     defocus = defocus_vals(n);
     if n == 1
-        [amplitude_ctf,amplitude_fft] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, ice_thickness );
+        [intensity,amplitude] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, ice_thickness );
     else
-        [amplitude_ctf,amplitude_fft] = simulate_map_from_pdb_FFTbased( amplitude_fft, defocus, ice_thickness );
+        [intensity] = simulate_map_from_pdb_FFTbased( amplitude, defocus, ice_thickness );
     end
 
-    all_contrast(n) = max(max(1-abs(amplitude_ctf).^2));
+    all_contrast(n) = max(max(1-intensity));
     title(sprintf('Defocus %5.1f um', defocus))
 end
 subplot(5,3,10)
-[amplitude_ctf,amplitude_fft] = simulate_map_from_pdb_FFTbased( amplitude_fft, 'phase_plate' );
+[intensity,amplitude] = simulate_map_from_pdb_FFTbased( amplitude, 'phase_plate' );
 title( 'Phase plate')
-contrast_phase_plate = max(max(1-abs(amplitude_ctf).^2)); 
+contrast_phase_plate = max(max(1-intensity)); 
 subplot(5,3,11)
-[amplitude_ctf,amplitude_fft] = simulate_map_from_pdb_FFTbased( amplitude_fft, 'dark_field' );
+[intensity,amplitude_fft] = simulate_map_from_pdb_FFTbased( amplitude, 'dark_field' );
 title( 'Dark field (note shift in contrast scale)')
-contrast_dark_field = max(max(abs(amplitude_ctf).^2));
+contrast_dark_field = max(max(intensity));
 
 subplot(5,1,5)
 plot( [0 max(abs(defocus_vals))],contrast_phase_plate*[1 1],'linew',2); hold on

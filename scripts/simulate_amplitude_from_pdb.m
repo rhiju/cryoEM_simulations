@@ -1,5 +1,5 @@
-function [amplitude_fft,lambda] = simulate_amplitudeFFT_from_pdb( pdbstruct, max_x, ice_thickness )
-% [amplitude_fft,kx,ky,lambda] = simulate_amplitudeFFT_from_pdb( pdbstruct, max_x, ice_thickness)
+function [amplitude,lambda] = simulate_amplitude_from_pdb( pdbstruct, max_x, ice_thickness )
+% [amplitude,lambda] = simulate_amplitude_from_pdb( pdbstruct, max_x, ice_thickness)
 %
 % Simulate amplitude_fft for 300 keV beam. 
 %  Note that total scattering  amplitudes are dependent on atom type as
@@ -13,9 +13,8 @@ function [amplitude_fft,lambda] = simulate_amplitudeFFT_from_pdb( pdbstruct, max
 %  ice_thickness = (default: 20 nm) ice thickness, in nm.
 %
 % Outputs
-%  amplitude_fft = 2D FFT of image scattered from model. Points are 2D grid
-%                   of wavevectors (2*pi*j/N), with
-%                      j = 0, 1, .. N/2, -N/2,... -1
+%  amplitude = image scattered from model.  Note: complex-valued (pure phase
+%                    shift).
 %  lambda = wavelength (in m)
 %
 
@@ -35,8 +34,8 @@ q = 2*pi*(mod([0:N-1]+midpoint,N)-midpoint)/N;
 [qx,qy] = ndgrid(q,q);
 
 if ~isstruct( pdbstruct )
-    % assume user as inputted amplitude_fft as first argument
-    amplitude_fft = pdbstruct;
+    % assume user as inputted amplitude as first argument
+    amplitude = pdbstruct;
     return;
 end
 
@@ -159,3 +158,4 @@ amplitude_h2o_fft = i * (pi/lambda/E) * proj_potential_h2o_fft;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 amplitude_fft = amplitude_model_fft + amplitude_h2o_fft;
+amplitude = ifft2( amplitude_fft );

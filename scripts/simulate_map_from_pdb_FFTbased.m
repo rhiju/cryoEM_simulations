@@ -1,6 +1,6 @@
-function [amplitude_ctf,amplitude_fft] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, ice_thickness )
-% [amplitude_ctf,amplitude_fft] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, ice_thickness )
-% [amplitude_ctf,amplitude_fft] = simulate_map_from_pdb_FFTbased( amplitude_fft, defocus, ice_thickness )
+function [intensity,amplitude] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, ice_thickness )
+% [intensity,amplitude] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, ice_thickness )
+% [intensity,amplitude] = simulate_map_from_pdb_FFTbased( amplitude_fft, defocus, ice_thickness )
 %
 %  pdbstruct     = model as read in by pdbread; dimensions assumed to be Å.
 %  defocus       = (default -1) defocus, assumed to be in um.
@@ -16,7 +16,8 @@ max_x = 200;  % in pixels, so 400 Å or 40 nm.
 pixels   = [-max_x:1:max_x]*pixel_size;
 N = length(pixels);
 
-[amplitude_fft,lambda]= simulate_amplitudeFFT_from_pdb( pdbstruct, max_x, ice_thickness);
+[amplitude,lambda]= simulate_amplitude_from_pdb( pdbstruct, max_x, ice_thickness);
+amplitude_fft = fft2(amplitude);
 
 if isnumeric(defocus)
     % Let's apply CTF
