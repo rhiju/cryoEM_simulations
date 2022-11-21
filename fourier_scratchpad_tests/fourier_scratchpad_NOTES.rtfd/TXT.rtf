@@ -1,0 +1,190 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fmodern\fcharset0 Courier;\f2\fswiss\fcharset0 Helvetica-Bold;
+\f3\fswiss\fcharset0 Helvetica-Oblique;\f4\froman\fcharset0 Times-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green128\blue19;\red251\green2\blue7;\red0\green0\blue0;
+}
+{\*\expandedcolortbl;;\csgenericrgb\c0\c50196\c7451;\cssrgb\c100000\c14913\c0;\cssrgb\c0\c0\c0;
+}
+\margl1440\margr1440\vieww21160\viewh18320\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \ul \ulc0 fourier_scratchpad_test1_defocus_CTF_simple1D\
+\
+\ulnone Check application of defocus (via FFT, fresnel propagator).\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf2 % Let's apply CTF\
+\cf0 df = 100; \cf2 % defocus\
+\cf0 lambda = 0.02; \cf2 %\
+\cf0 z = 10000; \cf2 % to define angles (should be low).\
+\cf0 sigma_k = 1; \cf2 % there's some sensitivity to this "aperture" parameter\
+\cf0 k = x./z/lambda;\
+max_theta = max(x)/z\
+propagator_fft1 = exp(i*pi*df*lambda * k.^2) .* exp(- k.^2 / 2/ sigma_k.^2);\
+k = ((x-box_size)./z/lambda);\
+propagator_fft2 = exp(i*pi*df*lambda * k.^2) .* exp(- k.^2 / 2/ sigma_k.^2);\
+propagator_fft = propagator_fft1 + propagator_fft2;\
+\
+a_fft = fft(a);\
+a_PSF = ifft( a_fft .* propagator_fft);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \ul \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ulnone {{\NeXTGraphic Screen Shot 2022-11-18 at 8.17.22 AM.png \width16360 \height6500 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ul \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 fourier_scratchpad_test2_gaussians\
+\
+\ulnone Check that I understand MATLAB discrete FFT with Gaussians, and potentially how to deal with wavevectors lambda.\
+\
+Place a point source at x0 = 2 in a box of size 1024, calculate Fourier transform, apply Gaussian in Fourier space, iFFT back, and check for convolution:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 box_size = 1024;\
+midpoint = box_size/2;\
+x = [1:box_size]-1;\
+\
+x0 = 2;\
+a = zeros(1,box_size);\
+a(find(x==x0)) = 1;\
+\
+\cf2 % Let's apply PSF\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 lambda = 0.02; \cf2 %\
+\cf0 z = 10000; \cf2 % to define angles (should be low).\
+\cf0 sigma_k = 0.1; \cf2 % there's some sensitivity to this "aperture" parameter\
+\cf0 k = x./z/lambda;\
+max_theta = max(x)/z\
+propagator_fft1 =  exp(- k.^2 / 2/ sigma_k.^2);\
+k = ((x-box_size)./z/lambda);\
+propagator_fft2 = exp(- k.^2 / 2/ sigma_k.^2);\
+propagator_fft = propagator_fft1 + propagator_fft2;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+max_theta =\
+\
+    0.1023\
+\
+[Tried \'93wraparound\'94 propagator, though  might be better to not add the two Gaussians, but instead to simply circshift one Gaussian]\
+\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 8.09.25 AM.png \width16440 \height14540 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+\
+Shift point source to 50, still basically works:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 8.12.44 AM.png \width16360 \height14760 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ul fourier_scratchpad_test3_screened_coulomb_potential\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ulnone OK how about Coulomb potential?\
+Need to do the math in 2D/3D so we can try out analytical form of Fourier propagator.\
+\
+Place point source a x0 = 8.\
+Check what happens if we just project over screened Coulomb potential.\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 x0 = 8; \
+lambda_mu = 20; \cf2 % screening length\
+\cf0 [xx,yy] = ndgrid(x,x);\
+rho = sqrt( (xx-x0).^2 + (yy-midpoint).^2 );\
+potential = exp(-rho/lambda_mu)./rho;\
+a_PSF_analytical = sum( potential, 2);\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Yea, it works! But I had to include a random factor of (2*pi) in the propagator - 
+\f2\b \cf3 [later tracked down to error in integral in my notes, there should be another 2pi!]
+\f0\b0 \cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf2 \
+% try to get same answer by applying analytical Fourier transform\
+%  of potential to a point at x0.\
+\cf0 a = zeros(box_size,box_size);\
+a(find(x==x0),1) = 1;\
+\
+\cf2 % don't add, just do wraparound\
+\cf0 k = 2*pi*(mod(x+midpoint,box_size)-midpoint)/box_size;\
+[kx,ky] = ndgrid(k,k);\
+propagator_fft = (2*pi)*2./(kx.^2+ky.^2+(1/lambda_mu)^2);\
+\cf2 %propagator_fft = 0*kx + 1; %test only! delta function propagator!
+\f0\fs24 \cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 8.53.37 AM.png \width13220 \height14060 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf2 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Will this work with fftshift? No, had some issues.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf2 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Sweet! Note that above we did 2D FFT\'92s, and we 
+\f3\i should
+\f0\i0  have all the factors of 2 pi worked out.\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+\
+\ul fourier_scratchpad_test4_exptamplitudes.m\
+\pard\pardeftab720\partightenfactor0
+\cf0 \ulnone Z. Su and P. Coppens, Acta Cryst.  A53, 749-762 (1997).\
+\
+Use sum of six Gaussians  model provided in Su and Coppens. Manually read a, b parameters from table!\
+- Converted to amplitude using {\field{\*\fldinst{HYPERLINK "https://journals.iucr.org/m/issues/2018/03/00/fq5001/"}}{\fldrslt Yonekura}} formula:\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f4 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4 {{\NeXTGraphic fq5001fd4.gif \width6520 \height1500 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\
+\pard\pardeftab720\partightenfactor0
+
+\f0 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+\
+I noted a bunch of silliness needed to convert between s and q in the MATLAB code 
+\f1\fs20 plot_electron_scattering_amplitude
+\f0\fs24 .\
+\
+Interesting to toggle lambda_mu with exp(-r/lambda_mu)/r Coulomb potential to see if we can fit.\
+\'97 For H, C, N, and O can get fit to Lorentzian (which is the Fourier transform of the screened Coulomb potential), but\
+      with lambda_mu always in ~0.30 \'c5\
+\'97 Note the need to make C \'91fatter\'92 than O (lambda_mu of 0.327 vs. 0.25 \'c5) to reproduce both higher scattering and curve shape.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 6.13.53 PM.png \width11280 \height16620 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\
+\
+Cool. Let\'92s transfer this over!\
+\
+}

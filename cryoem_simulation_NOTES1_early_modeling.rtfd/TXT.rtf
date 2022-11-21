@@ -1,0 +1,470 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fmodern\fcharset0 Courier;\f2\fswiss\fcharset0 Helvetica-Oblique;
+\f3\fswiss\fcharset0 Helvetica-Bold;\f4\fmodern\fcharset0 Courier-Bold;\f5\fnil\fcharset0 Menlo-Regular;
+\f6\froman\fcharset0 Times-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green128\blue19;\red0\green0\blue0;\red0\green0\blue0;
+}
+{\*\expandedcolortbl;;\csgenericrgb\c0\c50196\c7451;\csgray\c0;\cssrgb\c0\c0\c0;
+}
+\margl1440\margr1440\vieww27540\viewh17360\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ul \ulc0 slice_simulation_test1_nanometers.m\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ulnone How much potential fluctuations just from water fluctuations? \
+Well, in a nm^3 voxel, 33 waters on average, so sqrt(33)~5.7 water fluctuations.\
+\
+Sum that over thickness of ice, say 100 nm, and should go up by +/-57 water per 2D 1nm x 1nm pixel (mean waters projected into that pixel are 3300)\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 h2o_grid = sqrt(h2o_per_nm3)*randn(size(X,1),size(X,2),size(X,3)); \cf2 %  + h2o_per_nm3  % this is a constant phase shift.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+Note that randn \'97 we\'92re subtracting out the 
+\f2\i total
+\f0\i0  phase shift from ice.\
+\
+Yes, checked:\
+>> sqrt(mean(sum(h2o_grid(10,10,:),3).^2))\
+\
+ans =\
+\
+   49.2702\
+\
+How much projected potential does each water contribute?\
+\
+Treat projected potential in as 2D delta function. Then integral of the delta function should be\
+ Integral of V(x,y,z) over all volume.  Integral of exp(-r/lambda_mu)/r is 4 * pi, so that gives us the magnitude of the delta function:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 Z_h2o = 10; \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 prefactor = (8.99e9)*(1.60217663e-19) * 1e9; \cf2 % e/(4 pi epsilon_0) --> V*nm\
+\cf0 potential = h2o_grid * Z_h2o * (4*pi) * prefactor * (lambda_mu)^2 / 1^3; \
+\cf2 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 This comes out for each water to:\
+\
+>> Z_h2o * (4*pi) * prefactor * (lambda_mu)^2 / 1^3\
+\
+ans =\
+\
+    1.8100\
+\
+ Average voltage in the 1nm^3 voxel  that contains the water is 1.81 V.\
+\
+To convert to phase shift to assume within 1 nm^2 2D pixel, integrate over z (projection, 1nm for the voxel depth),\
+\
+Phase-shift = 2*pi * m * e  * lambda/ h^2 * projected-potential = pi * (e*projected-potential)/(lambda*E)\
+                   = pi * (1.81 eV * 1 nm) / (300e3 eV * 2.24e-3 nm)\
+                   = 0.0085 radians\
+\
+Since lambda^2 = h^2/2*m*E, and assuming E= 300 keV which corresponds also to lambda = 2.24 pm = 2.24e-3 m.\
+\
+Conversion factor from 
+\f3\b V-nm
+\f0\b0  to 
+\f3\b phase shift
+\f0\b0 :  \
+>> pi / (300e3 * 2.24e-3)\
+\
+ans =\
+\
+    0.0047\
+\
+Looks about right \'97 weak phase approximation.\
+Interesting that phase shift within each pixel from water is 3300 * 0.0085 rad = 28 radians. Not quite \'93weak phase\'94 approximation. \
+Though I guess if we had chosen pixel size of 1 \'c5 instead of 1 nm, we\'92d have 33 waters projected into that pixel and phase shift of 0.28 radians.\
+Actually I wonder if that\'92s the important thing here, phase shift or phase shift * nm^2? Maybe we should really zoom in to 1 \'c5?\
+\
+\
+\
+OK try that:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ul \ulc0 slice_simulation_test2_onewater_Angstroms.m\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ulnone Use 10 nm x 10 nm x 10 nm volume, and place a water near the center (shift by random amount). \
+Compute phase shift:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-05 at 12.18.43 PM.png \width7740 \height7700 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-05 at 12.19.46 PM.png \width8020 \height7680 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Maximum phase shift in 1 \'c5 pixel is: 0.135458 rad\
+Integrated phase shift in 1 \'c5 pixel is: 0.813292 rad * \'c5^2\
+Which matches well the 0.0085 rad * nm^2 = 0.85 rad * \'c5^2 above. OK, that checks out actually.\
+\
+If we end up imaging phase shift by focusing onto a detector with some defocus, we actually will see electrons showing up in a pixel with intensity increased/decreased by a fraction that is proportional to phase shift integrated over that pixel.\
+\
+Yes, worked out separately \'97\
+\
+Psi(x,y) = 1 + i * phase_shift(x,y)\
+\
+ if we use, say a phase plate (PP),\
+ \
+Psi_PP(x,y) = I + i * phase_shift(x,y) \
+\
+I_PP(x,y) =  | Psi_PP(x,y) | ^2  = 1 + 2 * phase_shift(x,y)\
+\
+If fluency (\'91dose\'92) is N electrons/\'c5^2,  \
+  the number of counts in a pixel =  N * (1 + 2 * Integral over pixel of phase_shift(x,y) dx dy  )\
+\
+Above only works in limit of weak phase shift\'85 so wait a minute, how does this work for vitreous ice?\
+ Maximal phase shift in 1 \'c5 pixel is  ~0.13 rad.  If we look through 100 nm ice sheet, that\'92s 1000 \'c5 depth.   There are 33 waters/nm^3 or 33e-3 waters/\'c5^3, but then there will be 33 waters in the 1\'c5 pixel integrated over depth.\
+ That comes out to 4.29 radians in 100 nm thick ice. Getting dangerously out of range of weak phase approximation.\
+ But then again, \'93pass-through\'94 electrons will also receive this phase shift. What matters is 
+\f2\i relative
+\f0\i0  phase shift. OK!\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf2 \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \ul \ulc0 slice_simulation_test1_nanometers.m
+\f1\fs20 \cf2 \ulnone \
+
+\f0\fs24 \cf0 If we end up imaging phase shift by focusing onto a detector with some defocus, we actually will see electrons showing up in a pixel with probability proportional to phase shift integrated over that pixel.\
+So let\'92s go back to the simulation of the whole slice (1000 nm x 1000 nm x 100 nm)\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-05 at 1.06.48 PM.png \width9100 \height8020 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+A bit hard to see what\'92s going on. Actually, maybe we should shift to Angstrom pixels, but use approximation of delta functions for water potential.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 \
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ul slice_simulation_test3_dipole_Angstroms.m\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ulnone \
+Note: ice thickness assumed to be only 10 nm!\
+Field of view reduced to 10 nm x 10 nm.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 {{\NeXTGraphic Screen Shot 2022-11-05 at 1.47.08 PM.png \width8520 \height8280 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+\
+Positive and negative charges of 
+\f4\b +40 and -40
+\f1\b0  placed at -2 nm and +2 nm, i.e. 40 \'c5 apart.\
+\
+Smoothed the 2D image with Gaussian Filter, to mimic lens optics not being perfect - and makes it easier to see features beyond \'93noise\'94 introduced by water.\
+\
+Cool.\
+\
+Note in above, I assumed dielectric around charge to be 1. If we assume 80, nothing would be visible above the water noise! \
+Not sure what to do about that \'97 suggests that negative also is incorrect? Can\'92t tell.\
+\
+Still \'97 a little puzzled about phase shift. Should be 0.135 rad (max) per H2O from single water simulation. Water per 2D pixel 33/nm^3 x 10 nm x 0.01 nm^2 = 3.3. So sqrt should be  ~1.8. So phase shift fluctuation should be at most 1.8 x 0.135 rad = 0.24. But seems like in above much higher RMSD in phase shift \'97 indeed getting 1.5! OK something is off. Well\'85 in above, had 0.813 rad * A^2 when integrated over pixel, and here I\'92m assuming delta function concentrating this all into single pixel \'97 that can lead to ~6x higher amplitude noise, which might be jacking up the noise. \
+Hmm, maybe should spread out the water noise with a Gaussian filter?  Use MATLAB imgaussfilt?\
+\
+\
+ imgaussfilt3 3-D Gaussian filtering of 3-D images\
+    B = imgaussfilt3(A) filters 3-D image A with a 3-D Gaussian smoothing\
+    kernel with standard deviation of 0.5.\
+ \
+    B = imgaussfilt3(A,SIGMA) filters 3-D image A with a 3-D Gaussian\
+    smoothing kernel with standard deviation specified by SIGMA. SIGMA can\
+    be a scalar or a 3-element vector with positive values. If sigma is a\
+    scalar, a cube Gaussian kernel is used.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 {{\NeXTGraphic Screen Shot 2022-11-05 at 2.08.56 PM.png \width8580 \height8200 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+In above, used imgaussfilt (2D) on projected water potential with 1 \'c5 sigma. \
+\
+But very similar with imgaussfilt3 in 3D:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-05 at 2.24.46 PM.png \width8700 \height8120 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+The 1 \'c5 smoothing seems to do a lot! Checked that making sigma for filter to 0.5, 0.2, sharpens up noise.\
+\
+OK, things are about to get worse, though \'97 ice thickness above is 10 nm, but should be closer to 50 nm \'97> sqrt(5x) ~ 2.5x increase in noise. Here\'92s what that looks like:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-05 at 2.25.30 PM.png \width8480 \height8160 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+And I really should simulate dielectric \'97 immediate drop in signal by 80!? Or do we have any excuse to use full strength?\
+And I should put the negative ions in double helical pattern, and counter ions spread around with, say, 10 \'c5 ion atmosphere extension (e.g., compute Debye length).\
+\
+From Wikipedia:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-05 at 2.28.52 PM.png \width10380 \height3600 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+So at, say 50 mM Na-HEPES, Debye length is ~1.3 nm ~ 13 \'c5.\
+\
+It will also be very interesting to actually compute convolutions with defocus point spread function. It\'92s quite interesting that at 300 keV, lambda = 2.24 pm, and a defocus of 1 um (which is typical) gives a length scale for the PSF of sqrt( lambda * df) = 15 \'c5.   Close to Debye length above. =) \
+\
+Nothing preventing us from using spherical aberration and defocus values and Fourier space convolutions here.\
+\
+As a preview, can simulate smoothing with sigma of 15 \'c5 \'97 does noise disappear? Maybe!\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-05 at 2.37.32 PM.png \width8560 \height8080 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+With 10 \'c5 sigma for the Gaussian smoothing (and change of contrast scale), things look pretty good:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 {{\NeXTGraphic Screen Shot 2022-11-05 at 2.39.27 PM.png \width8620 \height8100 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+Though it is funny how much the water noise matters \'97 can see in the periphery. In above, dielectric is still assumed to be 1 \'97 I doubt we\'92ll be able to see anything beyond noise if dielectric is reduced. Actually it seems like a miracle that we can even see RNA/DNA, and it will be very interesting to simulate that at atomic level. May want to zoom out to nm pixels at that point.\
+\
+\ul slice_simulation_test4_helix\
+\ulnone Read in a 10bp helix.\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f5 \cf3 \CocoaLigature0 rna_\ul helix.py\ulnone   -seq cguugcaacg cguugcaacg   
+\f0 \cf0 \CocoaLigature1 \
+Use my wacky scattering factor (proportional to Z) to model output:\ul \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \ulnone {{\NeXTGraphic Screen Shot 2022-11-07 at 7.30.50 PM.png \width8480 \height8140 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+\
+What if we place a -0.5 charge at each OP2 or OP1 \'97 model Coulomb potential:\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-07 at 7.31.07 PM.png \width8740 \height8080 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+Nice! Extended potential since all those negative charges add up! \
+\
+What if we now randomly place positive cations, but diffusely \'97 13 \'c5 Gaussian (this is  Debye length) around each OP1. \
+Ooh, very little extended potential:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-07 at 7.51.17 PM.png \width8760 \height8100 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-07 at 7.51.23 PM.png \width8880 \height8340 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+And I didn\'92t even put in dielectric of 80, which will further suppress this coulomb potential.\
+\
+Darn! Now add in H2O as points (cannot place where there are RNA atoms). Can see the RAN in the noise. 
+\f3\b But note that I set thickness to 10 nm, very small here:
+\f0\b0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-07 at 7.32.05 PM.png \width8420 \height8140 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-07 at 7.32.11 PM.png \width8660 \height8180 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+If we set thickness back to 50 nm:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-07 at 7.37.49 PM.png \width8660 \height8160 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-07 at 7.37.54 PM.png \width8660 \height8020 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+It\'92s getting pretty hard to see a 10 bp RNA helix! And phosphate charge does not help. Darn.\
+\
+Revisited Rachael\'92s thesis proposal \'97 she sees negative potential clearly in 3D averaged map of SAM riboswitch \'97 seems like mainly in major groove.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 8.08.39 PM.png \width19140 \height10960 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+If we look in 3D, however, we can see the negative potential clearly. Following shows +/-8 V contours:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.24.09 PM.png \width10660 \height7760 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Didn\'92t cutoff dielectric, but could/should do that. Still, looks quite strong here!\
+\
+Shall we also look at projection of RNA from the side, rather than along helix axis?\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.26.21 PM.png \width8860 \height8320 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.26.26 PM.png \width8260 \height8320 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Can\'92t see with noise \'85 worse if anything. Actually this begs the question of how Rachel or anyone can see single-stranded unfolded or double-stranded DNA? May need to simulate longer duplex.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.27.19 PM.png \width8840 \height8060 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.27.36 PM.png \width8680 \height8320 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+\ul slice_simulation_test5_longhelix\
+\ulnone Let\'92s try a longer helix \'97 will also be fun to apply contrast transfer function to this one.\
+\
+40 base pairs. Nice clear signal even with water noise.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.35.38 PM.png \width8420 \height8300 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.35.42 PM.png \width8600 \height8160 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.35.51 PM.png \width6220 \height7860 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Also tried to rotate helix \'97 weirdly cannot see signal now beyond water noise. Though in Rachael\'92s micrographs, I feel like helix is clearer. So I\'92m guessing I\'92ve screwed up something with the scattering factors! But, then again, there shouldn\'92t be that much contrast from a helix edge-wise compared to 50 nm water (16 waters projected into each \'c5x\'c5 pixel).\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.39.58 PM.png \width8740 \height8300 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.40.04 PM.png \width8760 \height8160 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.40.10 PM.png \width9120 \height8140 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Check what projected potential looks like without water \'97 yea checks out:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 7.42.01 PM.png \width8940 \height8260 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Set contours at -10 V, +10 V \'97 nice fill-in of major groove \'97 matches Rachael\'92s figure? \
+We should also double check there, and also try a better model than straight 1/r for potential (take into account water shell)\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 8.11.19 PM.png \width9720 \height8020 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+Could it be possible that in some cases we just have really thin ice? Let\'92s simulate 20 nm thickness ice (!):\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 8.15.09 PM.png \width8600 \height8220 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-09 at 8.15.14 PM.png \width8900 \height8240 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Now we can see the RNA!  Could it simply be a matter of finding the right ice thickness? Let\'92s also not rule out PSF. Won\'92t know until we simulate it.\
+\
+\
+\ul slice_simulation_test6_exptscatteringfactors\
+\ulnone Nov 10, 2022\
+Update to include actual experimental scattering factors compiled from experiment and Hartree/Fock-style calculations.\
+\
+Also put in a cutoff of -1 electrostatic Coulomb potential  to stop at water radius of 10 \'c5. (If I set this at 3\'c5 which seems more realistic, I see nothing!)\
+\
+The helix scattering looks stronger than before \'97 apparently I had too low values form lambda_mu, the apparent \'91size\'92 of each atom as  1 \'c5.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-10 at 4.25.14 PM.png \width10000 \height10860 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Let\'92s add water (20 nm thick):\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-10 at 4.29.41 PM.png \width10180 \height4420 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+Super easy to see. Now let\'92s go to 50 nm:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-10 at 4.30.55 PM.png \width10040 \height4420 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Really looks good. Almost suspiciously so\'85\
+Is it just me, or does the area outside the RNA always look red when smoothed? What\'92s up with that? Yea, I\'92ve tried it over and over again.\
+Also got rid of the Coulomb potential \'97 still there.\
+\
+In above, field of view was reduced to 12 nm x 12 nm ti reduce computation. \
+Let\'92s simulate a bigger field of view to get more of a visual read on background phase shift from ice:\
+20 nm x 20nm:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-10 at 4.43.10 PM.png \width11760 \height5060 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Maybe I\'92m estimating the n_H2O a little off, and that\'92s resulting in a net \'93negative\'94 potential when average over everything. \
+Yea, I was previously populating H2O based on whether rand > exp(-p) (Poisson like). Now just check if rand < p:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-10 at 4.48.01 PM.png \width12060 \height4960 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+It is interesting though that the appropriate threshold might more clearly reveal the signal over the noise, at least visually.\
+Main lesson \'97 needed to put in the actual scattering amplitudes!\
+\
+\
+\
+Might be interesting to actually simulate in gray scale the image with the offset from beam pass-through \'97 good stepping stone to estimate effect of CTF, which should be easy with FFT. Preview is to put things into grayscale:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-10 at 4.51.29 PM.png \width11760 \height5240 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+If I set contrast a bit differently, the RNA is super clear. I wonder if the 4 \'93lobes\'94 are visual artifacts or really a signature of underlying periodicity.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-11 at 9.08.06 AM.png \width4760 \height4200 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Compare to nucleosome data  (145 bp DNA) with Volta Phase Plate from this paper (Chia, Sandin):\
+\
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5499919/\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f6 \cf0 \expnd0\expndtw0\kerning0
+{{\NeXTGraphic kncl-08-03-1287643-g001.jpg \width5738 \height3060 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\pardeftab720\partightenfactor0
+
+\f0 \cf0 \kerning1\expnd0\expndtw0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Might be fun to use larger pixel sizes (e.g., 2 \'c5) and increase field of view. Let\'92s do that when we try to set up CTF.\
+\
+\
+Postscript (19 Nov., 2022)\
+I was off by factor of 4*pi^2 in my amplitude_to_V_m3 conversion factor.  So the RNA was scattering too strongly (by a large factor ~40)\
+\
+The actual phosphate Coulomb potential can actually be quite big relative to RNA:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 2.52.34 PM.png \width12320 \height13340 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+The negative potential  may even actually camouflage the nucleic acid esp. when ice noise is added back!:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 2.53.06 PM.png \width12780 \height13420 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+}

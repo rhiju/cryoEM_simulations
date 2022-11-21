@@ -1,0 +1,329 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fmodern\fcharset0 Courier;\f2\fnil\fcharset0 AndaleMono;
+\f3\fswiss\fcharset0 Helvetica-Oblique;}
+{\colortbl;\red255\green255\blue255;\red0\green128\blue19;}
+{\*\expandedcolortbl;;\csgenericrgb\c0\c50196\c7451;}
+\margl1440\margr1440\vieww15880\viewh17260\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \ul \ulc0 slice_simulation_test7_optimal_CTF\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ulnone \
+Had to mess around a bit to get phase_shift to lead to contrast with simulated phase plate \'97 reduce phase shift from RNA at given pixel (I don\'92t think this is kosher), and then scale up again later after phase shifting the \'93bright field\'94 from 1 to I:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 scalefactor = 10; \cf2 % Angstrom^2 -- convert above phase shift * Angstrom^2 to just phase shift?\
+\cf0 contrast = scalefactor * (abs( exp(-i * phase_shift/scalefactor ) - 1 + i).^2 - 1);\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 9.39.03 AM.png \width13160 \height6420 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Total projected potential (V-Angstrom^2): 0.000816\
+\
+As sanity check, don\'92t blur with imgaussfilt:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 9.43.32 AM.png \width12920 \height6320 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Total projected potential (V-Angstrom^2): 0.000816\
+\
+Good.\
+\
+Anyway, let\'92s come back to that. Let\'92s try to use Fourier synthesis to put together image \'97 very close to what happens in microscope and the way that CTF is applied/corrected in real-life cryo-EM data analysis.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 9.49.46 AM.png \width12700 \height6000 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Let\'92s try first Gaussian blur assuming 1.0 sigma:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf2 %sigma_k = 1;\
+%propagator_fft = exp(-sigma_k^2 * (kx.^2 + ky.^2)/2);\
+\cf0 proj_potential = ifft2( proj_potential_raw_fft .* propagator_fft );\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\
+Total projected potential raw (V-Angstrom^2): 0.000816\
+Total projected potential FFT (V-Angstrom^2): 0.000816\
+\
+Sweet!\
+\
+Now let\'92s use screened Coulomb potential:\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 9.52.20 AM.png \width13000 \height6020 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Total projected potential raw (V-Angstrom^2): 0.000816\
+Total projected potential FFT (V-Angstrom^2): 0.000816\
+\
+Actually units above for total projected potential raw is not correct \'97 should be Volt-m. \
+\
+Anyway, can we get realistic maps? \
+\
+Do Fourier synthesis directly from X, Y of atoms (don\'92t round positions). Yes:\
+Total projected potential via FFT (V-m): 0.000848\
+Maximum projected potential via FFT (V-m): 0.000001\
+Maximum amplitude via FFT (rad): 3965.982883\
+\
+But I need to attenuate amplitude by 0.1, or weak-phase approximation is violated. Even with 0.1, can still see \'93pileup\'94 of intensity over bright field:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 2.19.07 PM.png \width7980 \height7240 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+Note that I needed to also do a hack with defocus/CTF where I had to change k values by 2pi \'97 this may be consistent with Spence, but I need to check\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 2.47.15 PM.png \width10620 \height12840 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Looking at RNA \'91edge on\'92\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 2.48.57 PM.png \width10480 \height12800 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Total  projected potential (V-m): 0.000848\
+Maximum projected potential (V-m): 0.000001\
+Maximum amplitude           (rad): 3965.982883\
+\
+\
+Above is in vacuum. How does this look with jitter from ice?\
+This is with 20 nm thick ice:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-18 at 3.09.46 PM.png \width8480 \height9940 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+OK, can see the RNA above the noise from the ice, but it\'92s pretty weak \'97 and this isn\'92t even thick ice, just 20 nm.\
+\
+Note this seems like low S/N compared to results before, but before, (1) I used Gaussian form factor, not screened coulomb potential, and (2) this is CTF corrected not \'93phase plate\'94 corrected.\
+\
+1. I wonder if I should just bite the bullet and get a table of scattering amplitude form factors.\
+2. Also, should simulate dark field as well as phase plate images.\
+3. Last, I wonder if there\'92s some silliness related to k = 2*pi * 2 sin(theta/2)/lambda = 4 * pi * q that I should track down, particularly if there\'92s a wavelength dependence that I\'92m messing up and assuming is Angstroms rather than 0.0224 Angstroms, and that\'92s the source of the anomalously high phase shifts that I\'92m getting.\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ul Nov. 19, 2022\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ulnone Let\'92s investigate why phase shifts are so strong.\
+Just look at water.\
+\
+In my notes, I got 0.022 rad/nm as ice phase shift. So in thickness of 20 nm, should get 0.44 radians. OK, that\'92s reasonable.\
+\
+Create grid of water, thickness 20 nm (z from -100 to 100 \'c5). Put down waters based on h2o_per_A3 of h2o_per_A3 = 55 * 6.022e23 * 1e-27 = 0.0331 waters/\'c5^3.\
+\
+Then:\
+\
+potential_h2o = (h2o_grid ) * 3.0e-10 * amplitude_to_volt_m3/(1e-10)^3 ;\
+\
+>> mean(mean(mean(potential_h2o)))\
+\
+ans =\
+\
+  187.9977\
+\
+Hmm, doesn\'92t look right.  That\'92s higher than 4.8 V I had worked out in my notebook, but remember that I\'92d assumed screened Coulomb potential with lambda_mu = 1 \'c5 screening. \
+\
+Let\'92s convolve with coulomb potential:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 proj_potential_h2o = sum( potential_h2o, 3) * 1e-10;\
+\
+proj_potential_h2o_fft = fft2( proj_potential_h2o ) .* formfactor_fft;\
+proj_potential_h2o = ifft2(proj_potential_h2o_fft); \
+\
+\
+>> mean(mean(proj_potential_h2o))/20e-9\
+\
+ans =\
+\
+  188.9377\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+Still higher by a lot than 4.8 V in my notebook. 40x off.\
+\
+Look carefully. For H tabulated value for scattering amplitude is 0.5 \'c5. I\'92d gotten 2m/hbar^2 * (e^2/4pi epsilon0) * lambda_mu^2 = 0.095 \'c5. That\'92s off by factor of 5. Why off? Track it down!\
+\
+\
+For O, tabulated value of scattering amplitude is 2 \'c5. H2O assumed to be 3 \'c5. \
+I wold get 10 x  2m/hbar^2 * (e^2/4pi epsilon0) * lambda_mu^2 = 0.95 \'c5. That\'92s only off by 3.\
+\
+So why are seeing 40x off?\
+\
+Well how did I convert scattering amplitude to volt-m3?\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 amplitude_to_volt_m3 = (4*pi*E*lambda^2);  \cf2 % converts from scattering amplitude (in m) to Volt-m^3\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Oh I had an error in my notebook! H-bar instead of h. Fix:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\fs20 \cf0 amplitude_to_volt_m3 = E*lambda^2/pi;  \cf2 % converts from scattering amplitude (in m) to Volt-m^3\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\
+Now:\
+\
+>> mean(mean(mean(potential_h2o)))\
+\
+ans =\
+\
+    4.7620\
+\
+Sweet! Mean potential of 4.8 V. Actually shockingly close to my notebook calculation of 4.8V. Even after convolution:\
+\
+mean(mean(proj_potential_h2o))/20e-9\
+\
+ans =\
+\
+    4.7858\
+\
+OK! Need to redo calculation above.\
+\
+Also, better to define the conversion from scattering amplitude to potential based on fundamental constants that don\'92t depend on wavelength:\
+\
+h = 6.62607015e-34; m = 9.1093837e-31; e= 1.60217663e-19;\
+amplitude_to_volt_m3 = h^2/(2*pi*m*e);  % converts from scattering amplitude (in m) to Volt-m^3\
+\
+\
+Let\'92s track down factors of 2*pi\'85\
+\
+In MATLAB help fft:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f2 \cf0    For length N input vector x, the DFT is a length N vector X,\
+    with elements\
+                     N\
+       X(k) =       sum  x(n)*exp(-j*2*pi*(k-1)*(n-1)/N), 1 <= k <= N.\
+                    n=1\
+    The inverse DFT (computed by IFFT) is given by\
+                     N\
+       x(n) = (1/N) sum  X(k)*exp( j*2*pi*(k-1)*(n-1)/N), 1 <= n <= N.\
+                    k=1
+\f3\i \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\i0 \cf0 \
+\
+In my preferred nomenclature, k = 2 * pi * [0:N-1]/N.
+\f1\fs20 \
+
+\f0\fs24 \
+OK, did it. Within Coulomb potential calculation, used q = 2*pi([0:N-1]/N) which enters Fourier as exp(I*q*x). Note that q = 4*pi*sin(theta/2)/lambda\
+In applying defocus, use k = [0:N-1]/N. = q/(2*pi), which enters Fourier as exp(2*pi*k*x).   Note that k = 2*sin(theta/2)/lambda. \
+\
+dsRNA \'93head on\'94. Interesting that dsRNA is strong phase object that in principle can be seen at focus! Best defocus is 2 um:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 1.56.17 PM.png \width13160 \height14520 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+And let\'92s look at rotated helix \'97 harder to see above noise (20 nm ice), though 1.5-2 um still looks OK:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 2.00.11 PM.png \width13780 \height14440 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+What if there\'92s no ice. Interesting \'97 better to use smaller defocus ~0.75 um:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 2.02.43 PM.png \width13380 \height14240 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+\
+Phase plate and dark field:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 2.28.35 PM.png \width13120 \height14140 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+With 20 nm ice:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 2.31.58 PM.png \width13160 \height13980 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+Phase plate looks so much better! And now 50 nm ice:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 2.33.26 PM.png \width13280 \height14040 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Note! In above, assumed lambda_mu = 2.0 \'c5.\
+\
+If we instead assume lambda_mu = 1.0 \'c5 \'97 things get a bit more pointilistic, though interestingly, apparent contrast improves? .\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 7.07.40 PM.png \width11980 \height16260 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Oh, need to reset min/max contrast from 0.2 to 0.5\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 7.11.22 PM.png \width11540 \height16320 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+OK, todo:  put in actual scattering amplitudes.\
+\
+(See fourier_scratchpad_test4_exptamplitudes.m! Was able to get amplitudes from Su, Coppens and it \'93made sense\'94)\
+Here\'92s what I get now:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 7.12.56 PM.png \width11700 \height16200 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Yikes! Barely visible even with phase plate. What is up with defocus also not helping? IF we turn off ice:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 7.13.58 PM.png \width11740 \height16080 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Yea, atomic potentials are just \'85 pointy.\
+What if we smear out H2O by 1.0 \'c5 sigma \'97 mimic actual spread out of H vs. O and fact that the H2O\'92s are not all centered on grid:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 7.48.43 PM.png \width11620 \height15160 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Smear H2O by sigma of 2 \'c5:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-19 at 7.49.35 PM.png \width11620 \height15640 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+OK, need to try to place H2O\'92s off-grid and go ahead and place H\'92s (0.5 \'c5 amplitude!) separately from O\'92s (2.0 \'c5 amplitude)\
+ - Tried by enumeration, but there are 1M H2O\'92s and it\'92s taking too long.\
+ - Quickly, did smooth ice by 2 \'c5 instead of 1 \'c5, and that can reduce background.\
+}
