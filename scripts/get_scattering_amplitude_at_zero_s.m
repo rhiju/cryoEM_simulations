@@ -7,7 +7,7 @@ function  A = get_scattering_amplitude_at_zero_s( element )
 % 
 % Output:
 % A = scattering amplitude at s=0, in Å. 
-%      Read out from Yonekura paper.
+%      Read out from Yonekura paper, then checked against Zu,Coppens
 %
 
 A = 0;
@@ -23,6 +23,12 @@ switch element
         A = 2.0e-10;
     case 'P'
         A = 5.5e-10;
+    case 'Na'
+        A = 4.7e-10;
+    case 'Mg'
+        A = 5.2e-10;
+    case 'Cl'
+        A = 4.9e-10;
     otherwise
         fprintf( 'Unknown element! %s\n',element);
 end

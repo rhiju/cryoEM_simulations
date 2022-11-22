@@ -1,9 +1,9 @@
 {\rtf1\ansi\ansicpg1252\cocoartf2639
 \cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fmodern\fcharset0 Courier;\f2\fnil\fcharset0 AndaleMono;
-\f3\fswiss\fcharset0 Helvetica-Oblique;}
+\f3\fswiss\fcharset0 Helvetica-Oblique;\f4\fswiss\fcharset0 Helvetica-Bold;}
 {\colortbl;\red255\green255\blue255;\red0\green128\blue19;}
 {\*\expandedcolortbl;;\csgenericrgb\c0\c50196\c7451;}
-\margl1440\margr1440\vieww15880\viewh17260\viewkind0
+\margl1440\margr1440\vieww25460\viewh21680\viewkind0
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
 \f0\fs24 \cf0 \ul \ulc0 slice_simulation_test7_optimal_CTF\
@@ -325,14 +325,166 @@ Smear H2O by sigma of 2 \'c5:\
 \
 OK, need to try to place H2O\'92s off-grid and go ahead and place H\'92s (0.5 \'c5 amplitude!) separately from O\'92s (2.0 \'c5 amplitude)\
  - Tried by enumeration, but there are 1M H2O\'92s and it\'92s taking too long.\
- - Quickly, did smooth ice by 2 \'c5 instead of 1 \'c5, and that can reduce background.\
+ - Quickly, did smooth ice by 2 \'c5 instead of 1 \'c5, and that can reduce background, but is it right?\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 \cf0 {{\NeXTGraphic Screen Shot 2022-11-21 at 10.21.39 AM.png \width11920 \height15360 \appleattachmentpadding0 \appleembedtype0 \appleaqc
 }¬}\
 \
 Convert scripts to pass back/forth intensity and amplitude in real space \'97 Fourier space is non-intuitive (and can always be recovered with a fast FFT2).\
 \
+OK, now get in screened coulomb potential around phosphate oxygens \'97 assume dielectric is cutoff with exponential of lambda_dielectric of 2.0 \'c5.\
+	- I\'92m getting \'93spurs\'94 and weird ringing \'97 eventually traced to the FFT of the scattering having features out beyond 1/\'c5 spatial frequency but pixel_size of 1 \'c5, so some aliasing is happening.\
+	    - Know that aliasing/FFT is the issue when using simple screened coulomb potential for atoms. \
+	   - Coulomb potential screening length to 0.3 \'c5 (which matches Su,Coppens tabulated form factors), but not at 1 \'c5, where everything is smooth.\
+ I guess we could nail this by going to finer pixel size, e.g. 0.5 \'c5, but that seems like a pain right now.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-21 at 1.55.59 PM.png \width15940 \height14060 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
+Total  projected potential (V-nm): 
+\f4\b 21472.167321
+\f0\b0 \
+Maximum projected potential (V-nm): 44.307003\
+Maximum amplitude           (rad): 0.207135\
+\
+Total charge for phosphate, -80.000000\
+Total charge for counterion, 0.000000\
+Total  projected potential screened coulomb (V-nm):
+\f4\b  -5792.018318
+\f0\b0 \
+Max    projected potential screened coulomb (V-nm): -6.738432\
+\
+Total grid points with model: 2494\
+Total grid points to exclude water: 16351\
+Total  projected potential exclude water (V-nm):
+\f4\b  -7778.606752
+\f0\b0 \
+Max    projected potential exclude water (V-nm): -10.465987\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+With the current settings, exclusion of water, and the extended negative potential from phosphate reduce total scattering (V-nm summed over pixels \'97 should be V-nm^3?)by about 1/2.\
+\
+Let\'92s model in delocalized electrostatic potential screened to dielectric 80, positive counter ions, negative counter ions. Almost there!\
+\
+OK, here we go. I added in bulk salt. Ideally, we would model \'91hole\'92 from excluded anions, but for now assume ion atmosphere is all Na+!\
+\
 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 \cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-21 at 4.47.08 PM.png \width15920 \height14500 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-21 at 4.46.07 PM.png \width11740 \height15860 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Total  projected potential (V-nm^3): 214.343722\
+Maximum projected potential (V-nm): 44.972075\
+Maximum amplitude           (rad): 0.210244\
+\
+Total grid points with model: 2494\
+Total grid points to exclude water: 7292\
+\
+Total charge for phosphate, -80.000000\
+Total charge for counterion, 80.000000\
+\
+Total  projected potential phosphate screened coulomb (V-nm^3): -14.299045\
+Max    projected potential phosphate screened coulomb (V-nm): -3.319574\
+Total  projected potential counterion screened coulomb (V-nm^3): 14.299045\
+Max    projected potential counterion screened coulomb (V-nm): 5.438801\
+\
+Total  projected potential phosphate extended coulomb (V-nm^3): -7240.022898\
+Max    projected potential phosphate extended coulomb (V-nm): -8.713470\
+Total  projected potential counterion extended coulomb (V-nm^3): 7240.022898\
+Max    projected potential counterion extended coulomb (V-nm): 3.666142\
+Total  projected potential (total) extended coulomb (V-nm^3): 0.000000\
+Max    projected potential (total) extended coulomb (V-nm): -0.778047\
+\
+Total  projected potential from Na+ counterions (V-nm^3): 18.147550\
+Max    projected potential from Na+ counterions (V-nm): 730.460679\
+\
+Total number of Na+ ions: 1946\
+Total number of Cl- ions: 1946\
+\
+Total  projected potential (bulk NaCl, 0.100 M) (V-nm^3): 0.031461\
+Max    projected potential (bulk salt, 0.100 M) (V-nm): -3.249335\
+\
+Total  projected potential exclude water (V-nm^3): -34.928003\
+Max    projected potential exclude water (V-nm): -9.100823\
+\
+\
+And let\'92s look edge on too:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-21 at 4.45.31 PM.png \width15920 \height14260 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-21 at 4.45.38 PM.png \width11520 \height16200 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Total  projected potential (V-nm^3): 214.343722\
+Maximum projected potential (V-nm): 95.282009\
+Maximum amplitude           (rad): 0.445442\
+\
+Total grid points with model: 2494\
+Total grid points to exclude water: 7292\
+\
+Total charge for phosphate, -80.000000\
+Total charge for counterion, 80.000000\
+\
+Total  projected potential phosphate screened coulomb (V-nm^3): -14.299045\
+Max    projected potential phosphate screened coulomb (V-nm): -7.742825\
+Total  projected potential counterion screened coulomb (V-nm^3): 14.299045\
+Max    projected potential counterion screened coulomb (V-nm): 6.276880\
+\
+Total  projected potential phosphate extended coulomb (V-nm^3): -7240.022898\
+Max    projected potential phosphate extended coulomb (V-nm): -11.392393\
+Total  projected potential counterion extended coulomb (V-nm^3): 7240.022898\
+Max    projected potential counterion extended coulomb (V-nm): 3.641068\
+Total  projected potential (total) extended coulomb (V-nm^3): 0.000000\
+Max    projected potential (total) extended coulomb (V-nm): -2.061522\
+\
+Total  projected potential from Na+ counterions (V-nm^3): 18.147550\
+Max    projected potential from Na+ counterions (V-nm): 730.460679\
+\
+Total number of Na+ ions: 1946\
+Total number of Cl- ions: 1946\
+\
+Total  projected potential (bulk NaCl, 0.100 M) (V-nm^3): -90.874408 
+\f4\b <\'97 fixed a bug, this is always close to zero now. 
+\f0\b0 \
+Max    projected potential (bulk salt, 0.100 M) (V-nm): -3.649884\
+\
+Total  projected potential exclude water (V-nm^3): -34.928003\
+Max    projected potential exclude water (V-nm): -12.932749\
+\
+\
+\
+
+\f4\b Assumptions/caveats:\
+
+\f0\b0 - The images and contrast are really sensitive to how much the nucleic acid excludes water (currently assuming 1 \'c5 is closest distance).\
+- Did not model shells of water that may accumulated in outside of nucleic acid (appears to be a thing, see SAXS modeling by Svergun) \'97 may help contrast\
+- Assume Coulomb potential drops down to 1/80 with exponential screening length of 1 \'c5. Answer depends a lot on this distance, which depends on water polarizability.\
+- Anion exclusion by \'93halo\'94 may improve contrast. Modeling assumes only positive counter ions compose atmosphere, over bulk.\
+\
+
+\f4\b Conclusions
+\f0\b0 \
+- For single-molecule ensembles, should go for phase plate! And really need to reduce ice thickness\
+- Probably need long RNA extensions. No free lunch from dark field or optimal defocus.\
+- Best defocus is 1-2 um probably.\
+- Negative potential basically lowers contrast. Too bad.\
+- Should be able to see extended negative electrostatic potential with averaging, but not single molecule (fluctuations from bulk salt are similar in magnitude).\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+\
 }

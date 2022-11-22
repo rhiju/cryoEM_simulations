@@ -1,18 +1,20 @@
-function [intensity,amplitude] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, ice_thickness )
-% [intensity,amplitude] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, ice_thickness )
-% [intensity,amplitude] = simulate_map_from_pdb_FFTbased( amplitude_fft, defocus, ice_thickness )
+function [intensity,amplitude] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, sigma_blur, max_x, ice_thickness )
+% [intensity,amplitude] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, max_x, ice_thickness )
+% [intensity,amplitude] = simulate_map_from_pdb_FFTbased( amplitude_fft, max_x, defocus, ice_thickness )
 %
 %  pdbstruct     = model as read in by pdbread; dimensions assumed to be Å.
 %  defocus       = (default -1) defocus, assumed to be in um.
+%  sigma_blur    = (default 0 Å) blur by this amount.
+%  max_x         = (default 200 Å, 40 nm x 40 nm view) 2D box size will be assumed to be +/- max_x Å.
 %  ice_thickness = (default: 20 nm) ice thickness in nm.
 %
 if ~exist('defocus','var') defocus = -1; end
+if ~exist('sigma_blur','var') sigma_blur = 0; end
 if ~exist( 'ice_thickness','var') ice_thickness = 20; end;
+if ~exist( 'max_x','var') max_x = 200; end;
 
 % pixel size 1 Å
 pixel_size = 1e-10;
-% 40 nm x 40 nm
-max_x = 200;  % in pixels, so 400 Å or 40 nm.
 pixels   = [-max_x:1:max_x]*pixel_size;
 N = length(pixels);
 
@@ -47,12 +49,14 @@ end
 amplitude_ctf = ifft2( amplitude_ctf_fft );
 intensity = abs(amplitude_ctf).^2;
 
+if (sigma_blur>0.0) intensity = imgaussfilt( intensity, sigma_blur ); end;
+
 %%
 % show it!
 cla;
-max_contrast= 0.5;
-clim = 1+max_contrast*[-1 1];
-if ischar(defocus) & strcmp(defocus,'dark_field'); clim = [0 max_contrast^2]; end;
+max_contrast= 0.2;
+clim = 1+max_contrast*[-1 1/2];
+if ischar(defocus) & strcmp(defocus,'dark_field'); clim = [0 0.1*max_contrast^2]; end;
 imagesc( pixels/1e-10,pixels/1e-10,intensity',clim);
 %cmap = redwhiteblue(-max_contrast, max_contrast);
 cmap = gray(256);
