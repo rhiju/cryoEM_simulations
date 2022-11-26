@@ -328,7 +328,8 @@ OK, need to try to place H2O\'92s off-grid and go ahead and place H\'92s (0.5 \'
  - Quickly, did smooth ice by 2 \'c5 instead of 1 \'c5, and that can reduce background, but is it right?\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 \cf0 {{\NeXTGraphic Screen Shot 2022-11-21 at 10.21.39 AM.png \width11920 \height15360 \appleattachmentpadding0 \appleembedtype0 \appleaqc
-}¬}\
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
 \
 Convert scripts to pass back/forth intensity and amplitude in real space \'97 Fourier space is non-intuitive (and can always be recovered with a fast FFT2).\
 \
@@ -362,8 +363,7 @@ Total  projected potential exclude water (V-nm):
 \f4\b  -7778.606752
 \f0\b0 \
 Max    projected potential exclude water (V-nm): -10.465987\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
-\cf0 \
+\
 With the current settings, exclusion of water, and the extended negative potential from phosphate reduce total scattering (V-nm summed over pixels \'97 should be V-nm^3?)by about 1/2.\
 \
 Let\'92s model in delocalized electrostatic potential screened to dielectric 80, positive counter ions, negative counter ions. Almost there!\
@@ -371,8 +371,7 @@ Let\'92s model in delocalized electrostatic potential screened to dielectric 80,
 OK, here we go. I added in bulk salt. Ideally, we would model \'91hole\'92 from excluded anions, but for now assume ion atmosphere is all Na+!\
 \
 \
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
-\cf0 \
+\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 \cf0 {{\NeXTGraphic Screen Shot 2022-11-21 at 4.47.08 PM.png \width15920 \height14500 \appleattachmentpadding0 \appleembedtype0 \appleaqc
 }¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
@@ -465,16 +464,19 @@ Max    projected potential exclude water (V-nm): -12.932749\
 \
 \
 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f4\b Assumptions/caveats:\
+\f4\b \cf0 Assumptions/caveats:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f0\b0 - The images and contrast are really sensitive to how much the nucleic acid excludes water (currently assuming 1 \'c5 is closest distance).\
+\f0\b0 \cf0 - The images and contrast are really sensitive to how much the nucleic acid excludes water (currently assuming 1 \'c5 is closest distance).\
 - Did not model shells of water that may accumulated in outside of nucleic acid (appears to be a thing, see SAXS modeling by Svergun) \'97 may help contrast\
 - Assume Coulomb potential drops down to 1/80 with exponential screening length of 1 \'c5. Answer depends a lot on this distance, which depends on water polarizability.\
 - Anion exclusion by \'93halo\'94 may improve contrast. Modeling assumes only positive counter ions compose atmosphere, over bulk.\
 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f4\b Conclusions
+\f4\b \cf0 Conclusions
 \f0\b0 \
 - For single-molecule ensembles, should go for phase plate! And really need to reduce ice thickness\
 - Probably need long RNA extensions. No free lunch from dark field or optimal defocus.\
@@ -483,8 +485,77 @@ Max    projected potential exclude water (V-nm): -12.932749\
 - Should be able to see extended negative electrostatic potential with averaging, but not single molecule (fluctuations from bulk salt are similar in magnitude).\
 \
 \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ul Nov. 25, 2022\
+slice_simulation_test8_check_average\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ulnone Let\'92s check that noise averages out. \
+Generate 100 intensity images  of 40 bp RNA, and average:\
+Oops accidentally set defocus to +5 um, so over focus (and higher intensity in middle of image)\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-25 at 2.22.25 PM.png \width5260 \height12660 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\
+Redo with -2 um defocus as seems more typical for our RNA cryoEM:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-25 at 2.40.15 PM.png \width5260 \height12720 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+And what if we simulate dose of 10 e-/\'c5^2:\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-25 at 3.11.47 PM.png \width5420 \height12600 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Wow that is noisy. I guess it makes sense \'97 should be 1/sqrt(10) or relative noise of 30% in each \'c5^2 pixel. \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 But is that the contrast that comes out empirically?\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 \cf0 \
+Note that if I take above images and apply gaussian blur of 5 \'c5, can see the image again \'97 so no need to freak out:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-25 at 3.15.15 PM.png \width5640 \height12940 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Makes sense \'97 averaging over 5x5 pixels should reduce noice by sqrt(5*5), or by 5. So 30% noise goes down to 6% noise.\
+\
+Could we infer CTF from image? Yea, can definitely see fringes as expected:\
+imagesc( abs(fft2(intensity)),[0 10])\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-25 at 3.35.05 PM.png \width6700 \height6160 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+And with noise? No\'85\
+imagesc( abs(fft2(mean(all_counts,3))),[0 1000])\
+Even after averaging, can\'92t see fringes in FFT. Weird\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-25 at 3.37.15 PM.png \width6580 \height6260 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+imagesc( abs(fft2(intensity)),[0 10])\
+\
+\
+\
+Let\'92s apply CTF correction (to intensity, no noise from electron dose) \'97 OK works:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-25 at 3.32.36 PM.png \width5640 \height12720 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+Still some \'93rings\'94 despite dialing in exact CTF correction\'85 is the black \'93pool\'94 the atmosphere? \
+Should just average pure amplitude  (no CTF and CTF correction, equivalent to phase plate) \'97 how\'92s that look?\
+ \
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
 \
 \
 }

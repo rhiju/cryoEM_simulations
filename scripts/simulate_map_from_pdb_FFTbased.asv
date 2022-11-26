@@ -1,4 +1,4 @@
-function [intensity,amplitude,pixels] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, sigma_blur, max_x, ice_thickness )
+function [intensity,amplitude] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, sigma_blur, max_x, ice_thickness )
 % [intensity,amplitude] = simulate_map_from_pdb_FFTbased( pdbstruct, defocus, max_x, ice_thickness )
 % [intensity,amplitude] = simulate_map_from_pdb_FFTbased( amplitude_fft, max_x, defocus, ice_thickness )
 %
@@ -53,5 +53,18 @@ if (sigma_blur>0.0) intensity = imgaussfilt( intensity, sigma_blur ); end;
 
 %%
 % show it!
-dark_field = ischar(defocus) & strcmp(defocus,'dark_field');
-show_map(intensity, pixels, dark_field);
+show_map)cla;
+max_contrast= 0.2;
+clim = 1+max_contrast*[-1 1/2];
+if ischar(defocus) & strcmp(defocus,'dark_field'); clim = [0 0.1*max_contrast^2]; end;
+imagesc( pixels/1e-10,pixels/1e-10,intensity',clim);
+%cmap = redwhiteblue(-max_contrast, max_contrast);
+cmap = gray(256);
+cmap = cmap(:,end:-1:1);
+colormap(cmap);
+colorbar();
+title( 'Contrast, ÅxÅ pixels')
+xlabel('x (Å)');ylabel('y (Å)')
+axis image
+
+
