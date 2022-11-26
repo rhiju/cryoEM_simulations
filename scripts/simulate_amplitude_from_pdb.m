@@ -60,16 +60,16 @@ pixels_z = [-max_z:1:max_z]*1e-10;
 [X,Y,Z] = ndgrid(pixels,pixels,pixels_z);
 model_grid = zeros(length(pixels),length(pixels),length(pixels_z));
 
-% Here we go, sum over atoms in model.
+% Here we go, sum over atoms in Model(1).
 proj_potential_fft = zeros(N,N);
-for n = 1:length(pdbstruct.Model.Atom)
-    x = pdbstruct.Model.Atom(n).X+max_x;
-    y = pdbstruct.Model.Atom(n).Y+max_x;
-    z = pdbstruct.Model.Atom(n).Z+max_z;
+for n = 1:length(pdbstruct.Model(1).Atom)
+    x = pdbstruct.Model(1).Atom(n).X+max_x;
+    y = pdbstruct.Model(1).Atom(n).Y+max_x;
+    z = pdbstruct.Model(1).Atom(n).Z+max_z;
     proj_potential_fft = proj_potential_fft + ...
         amplitude_to_volt_m3/(pixel_size)^2 * exp(-1i*(qx*x+qy*y)) .* ...
-        scattering_amplitude_for_element{find(strcmp(elements,pdbstruct.Model.Atom(n).element))};
-    model_grid( round(x)+1,round(y)+1,round(z)+1 ) = 1;
+        scattering_amplitude_for_element{find(strcmp(elements,pdbstruct.Model(1).Atom(n).element))};
+    if round(z)+1>0 && round(z)+1 <= length(pixels_z); model_grid( round(x)+1,round(y)+1,round(z)+1 ) = 1; end;
 end
 
 proj_potential_fft = proj_potential_fft ;
@@ -119,15 +119,15 @@ proj_counterion_justatom_fft = 0*amplitude_model_fft;
 
 debye_length = 13e-10/1e-10;
 
-for n = 1:length(pdbstruct.Model.Atom)
+for n = 1:length(pdbstruct.Model(1).Atom)
     % later update Z to be scattering factor
-    if strcmp(pdbstruct.Model.Atom(n).AtomName ,'OP1') || ...
-        strcmp(pdbstruct.Model.Atom(n).AtomName ,'OP2')
+    if strcmp(pdbstruct.Model(1).Atom(n).AtomName ,'OP1') || ...
+        strcmp(pdbstruct.Model(1).Atom(n).AtomName ,'OP2')
         Z_charge = -0.5; 
         n_phosphate = n_phosphate+Z_charge;
-        x1 = pdbstruct.Model.Atom(n).X+max_x;
-        y1 = pdbstruct.Model.Atom(n).Y+max_x;
-        z1 = pdbstruct.Model.Atom(n).Z+max_z;
+        x1 = pdbstruct.Model(1).Atom(n).X+max_x;
+        y1 = pdbstruct.Model(1).Atom(n).Y+max_x;
+        z1 = pdbstruct.Model(1).Atom(n).Z+max_z;
         %R = sqrt((X + max_x*1e-10 - x1*1e-10).^2+(Y + max_x*1e-10 - y1*1e-10).^2+(Z + max_z*1e-10 - z1*1e-10).^2);
         % potential_charge = potential_charge + ...
         %     coulomb_prefactor * Z_charge * (1./R) .*exp(-R/(lambda_dielectric*1e-10));
@@ -137,7 +137,7 @@ for n = 1:length(pdbstruct.Model.Atom)
             Z_charge/dielectric_h2o * exp(-1i*(qx*x1+qy*y1)) .* scattering_amplitude_coulomb_extended;
     end
 
-    if strcmp(pdbstruct.Model.Atom(n).AtomName ,'OP1') 
+    if strcmp(pdbstruct.Model(1).Atom(n).AtomName ,'OP1') 
         Z_charge = 1; 
         dielectric = 1; %80;
         n_counterion = n_counterion+Z_charge;
@@ -192,7 +192,6 @@ amplitude_potential_extended = amplitude_potential_phosphate_extended + amplitud
 
 amplitude_potential_screened_fft = fft2(amplitude_potential_screened);
 amplitude_potential_extended_fft = fft2(amplitude_potential_extended);
-
 
 proj_counterion_justatom = ifft2( proj_counterion_justatom_fft );
 fprintf( '\nTotal  projected potential from Na+ counterions (V-nm^3): %f\n',sum(sum(proj_counterion_justatom))*(pixel_size^2)/(1e-9)^3 );
@@ -281,6 +280,7 @@ scattering_amplitude_h2o = ...
 % exclude water
 h2o_per_A3 = 55 * 6.022e23 * 1e-27;
 proj_potential_exclude_water = -1*sum(exclude_grid,3)*h2o_per_A3*amplitude_to_volt_m3/(pixel_size)^2 * scattering_amplitude_h2o(1,1);
+proj_potential_exclude_water = 0 * proj_potential_exclude_water;
 fprintf( '\nTotal  projected potential exclude water (V-nm^3): %f\n',sum(sum(proj_potential_exclude_water))*(pixel_size^2)/(1e-9)^3 );
 fprintf( 'Max    projected potential exclude water (V-nm): %f\n',min(min(proj_potential_exclude_water))/1e-9 );
 amplitude_exclude_water = i * (pi/lambda/E) * proj_potential_exclude_water;
@@ -294,6 +294,7 @@ h2o_grid_outside_model = h2o_grid_rel.* (1-exclude_grid);
 % units of V-m
 potential_h2o = h2o_grid_outside_model * amplitude_to_volt_m3/pixel_size^3 ;
 proj_potential_h2o = sum( potential_h2o, 3) * 1e-10;
+if (ice_thickness == 0); proj_potential_h2o = 0 * proj_potential_h2o; end;
 
 % smooth by sigma_h2o Angstroms
 sigma_h2o = 1.0;
@@ -321,7 +322,11 @@ amplitude_h2o_fft = i * (pi/lambda/E) * proj_potential_h2o_fft;
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-amplitude_fft = amplitude_model_fft  + amplitude_exclude_water_fft + amplitude_potential_screened_fft + amplitude_potential_extended_fft + amplitude_potential_counterion_screened + amplitude_h2o_fft + amplitude_salt_fft;
+amplitude_fft = amplitude_model_fft  + amplitude_exclude_water_fft + ...
+    amplitude_potential_screened_fft + amplitude_potential_extended_fft + ...
+    amplitude_counterion_justatom +  ...
+    amplitude_h2o_fft + ...
+    amplitude_salt_fft;
 amplitude = ifft2( amplitude_fft );
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -332,7 +337,7 @@ if SHOW_PLOT
     subplot(3,3,3); show_image(amplitude_potential_phosphate_screened, max_contrast, pixels,'Screened potential from phosphate');
     subplot(3,3,4); show_image(ifft2(amplitude_model_fft+amplitude_exclude_water_fft+amplitude_potential_phosphate_screened_fft), max_contrast, pixels,'Model with excluded water,\newline screened phosphate potential');
     subplot(3,3,5); show_image(ifft2(amplitude_potential_extended_fft), max_contrast, pixels,'Extended potential from phosphate,\newline screened by counterions');
-    subplot(3,3,5); show_image(amplitude_counterion_justatom + amplitude_potential_counterion_screened, max_contrast, pixels,'Counterions (with their screened potential)');
+    subplot(3,3,6); show_image(amplitude_counterion_justatom + amplitude_potential_counterion_screened, max_contrast, pixels,'Counterions (with their screened potential)');
     subplot(3,3,7); show_image(ifft2(amplitude_salt_fft), max_contrast, pixels,'Salt (bulk)');
     subplot(3,3,8); show_image(ifft2(amplitude_h2o_fft),max_contrast, pixels,sprintf('%d nm ice outside',ice_thickness))
     subplot(3,3,9); show_image(amplitude, max_contrast, pixels,'Complete image')

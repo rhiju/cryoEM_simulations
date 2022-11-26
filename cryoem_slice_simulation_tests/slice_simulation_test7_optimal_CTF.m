@@ -1,4 +1,5 @@
-pdbstruct = pdbread( 'helix_40bp.pdb');
+pdbstruct = pdbread( 'pdb/helix_40bp.pdb');
+pdbstruct = pdbread('pdb/TRibozyme_7ez0.pdb');
 pdbstruct = center_pdb( pdbstruct );
 % comment out next rotation to see RNA "edge on"
 pdbstruct = rotate_pdb( pdbstruct, rotationVectorToMatrix([0,pi/2,0]) );
