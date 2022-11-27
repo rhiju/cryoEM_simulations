@@ -18,7 +18,7 @@ pixel_size = 1e-10;
 pixels   = [-max_x:1:max_x]*pixel_size;
 N = length(pixels);
 
-[amplitude,lambda]= simulate_amplitude_from_pdb( pdbstruct, max_x, ice_thickness, 0);
+[amplitude,lambda]= simulate_amplitude_from_pdb( pdbstruct, max_x, ice_thickness, 2, 0);
 amplitude_fft = fft2(amplitude);
 
 if isnumeric(defocus)
@@ -44,7 +44,6 @@ else
         amplitude_ctf_fft = amplitude_fft;
     end
 end
-
 
 amplitude_ctf = ifft2( amplitude_ctf_fft );
 intensity = abs(amplitude_ctf).^2;

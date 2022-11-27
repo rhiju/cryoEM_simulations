@@ -1,8 +1,9 @@
 {\rtf1\ansi\ansicpg1252\cocoartf2639
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\margl1440\margr1440\vieww17680\viewh18100\viewkind0
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;\f2\fswiss\fcharset0 Helvetica-Oblique;
+}
+{\colortbl;\red255\green255\blue255;\red22\green21\blue22;\red246\green246\blue246;}
+{\*\expandedcolortbl;;\cssrgb\c11373\c10980\c11373;\cssrgb\c97255\c97255\c97255;}
+\margl1440\margr1440\vieww32480\viewh23800\viewkind0
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
 \f0\b\fs24 \cf0 Test drive CTF-correction
@@ -11,4 +12,80 @@
 27 Nov., 2022\
 slice_simulation_test10_CTFcorrection\ulnone \
 {{\NeXTGraphic Screen Shot 2022-11-27 at 11.45.08 AM.png \width7680 \height12700 \appleattachmentpadding0 \appleembedtype0 \appleaqc
-}¬}}
+}¬}\
+\
+Actually, re-compute with more blur to H2O \'97 read Mcmullan,Vinothkumar, Henderson, Ultramicroscopy (2015) where they are able to figure out that each dose of 300 kV e-/\'c5^2. Results in 0.35 \'c5^2 of H2O motion (1.1 \'c5^2 total MSD in three dimensions). So set default sigma_h2o to 2 \'c5, or 4 \'c5^2 which is MSD after ~10 e\'96/\'c5^2. (Would be better to apply this blur to intensity, not amplitude, but let\'92s just do this, since we\'92re predicting mean phase shift anyway)\
+\
+\
+{{\NeXTGraphic Screen Shot 2022-11-27 at 1.54.16 PM.png \width7700 \height12620 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\
+\
+Directly average amplitude \'97 looking good \'97 this is \'93ground truth\'94 for what we want:\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-27 at 1.54.29 PM.png \width5500 \height12820 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\
+\
+\
+Here\'92s what happens with CTF correction (\'93naive\'94 \'97 simply dividing by CTF in Fourier space):\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-27 at 1.55.09 PM.png \width7200 \height12660 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Note black pools around white DNA \'97 
+\f2\i this is a signature of lack of data at s=0 due to CTF suppression!
+\f1\i0 \
+\
+Also note importance of CTF correction at each defocus value, then averaging \'97 gives clearest signal.\
+\
+Interesting that there\'92s lack of signal at 0 \'97 in principle could fit CTF to include some amplitude contrast (since there is a tiny bit!). See Grigorieff chapter.\
+\
+\
+Decided to redo above with sigma_blur = 0.0 \'97 let\'92s really see if we can capture atomic details of RNA. (Water still blurred by 2 \'c5).\
+\
+\
+OK, here are the different approaches to CTF. Remember, there are 100 simulated images with defocus from -1 um to -2 um, which we assume are known.\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 {{\NeXTGraphic Screen Shot 2022-11-27 at 3.11.28 PM.png \width12620 \height17060 \appleattachmentpadding0 \appleembedtype0 \appleaqc
+}¬}\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+\
+Still the \'93black pool\'94. It\'92s because we don\'92t know the Fourier component at spatial frequency k < 0.025 \'c5^-1 or  length scales beyond 40 \'c5. \
+\
+Note sent to RCK:\
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs30 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Also, I\'92m starting to wrap up some of the simulation stuff \'97 before I forget, one more insight that might be relevant to your work on negative features.\
+\pard\pardeftab720\partightenfactor0
+\cf2 \
+\pard\pardeftab720\partightenfactor0
+\cf2 I\'92ve been paranoid for a while that our CTF correction might produce a halo of negative \'91potential\'92 that we could mistake for an ion atmosphere.\
+\pard\pardeftab720\partightenfactor0
+\cf2 \
+\pard\pardeftab720\partightenfactor0
+\cf2 Indeed that\'92s what I see now (images below are based on different CTF correction strategies applied to a simulated stack of 100 particle images taken from -2 to -1 um defocus).\
+\pard\pardeftab720\partightenfactor0
+\cf2 \
+\pard\pardeftab720\partightenfactor0
+\cf2 The explanation is that with any imaging of weak-phase objects taken at defocus, we can\'92t see any fourier components at spatial frequencies better than about 1/40 \'c5, so what we end up seeing in final maps at those frequencies depends completely on how the CTF correction is applied. In the images below, the FFT\'92s end up assuming that the total amplitude of the map is zero, and that ends up showing up as a \'93black pool\'94 of negative potential around the dsRNA.\
+\pard\pardeftab720\partightenfactor0
+\cf2 \
+\pard\pardeftab720\partightenfactor0
+\cf2 It may be possible that current software finds a way around this, e.g., by cluing into ultra-weak signals for amplitude contrast (absorbance) of our samples, but I\'92m guessing it\'92s applying some sort of heuristic which can produce spurious negative features.\
+\pard\pardeftab720\partightenfactor0
+\cf2 \
+\pard\pardeftab720\partightenfactor0
+\cf2 Anyway, I think the only way to really be confident in negative halo\'92s might be to use phase plate \'97 something to look into when we\'92re ready to do a deep dive into negative features, maybe next year.\
+\pard\pardeftab720\partightenfactor0
+\cf2 \
+\pard\pardeftab720\partightenfactor0
+\cf2 We should have some maps from ribosolve paper that were phase plate based, so that might provide a check. It\'92s also important to look for the negative halo (or lack of it) in protein-only complexes, ideally in data collected with and without phase plate \'97 have we checked that?
+\fs24 \cf0 \cb1 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+}

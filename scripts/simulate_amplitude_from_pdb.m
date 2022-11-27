@@ -1,5 +1,5 @@
-function [amplitude,lambda] = simulate_amplitude_from_pdb( pdbstruct, max_x, ice_thickness, SHOW_PLOT )
-% [amplitude,lambda] = simulate_amplitude_from_pdb( pdbstruct, max_x, ice_thickness)
+function [amplitude,lambda] = simulate_amplitude_from_pdb( pdbstruct, max_x, ice_thickness, sigma_h2o, SHOW_PLOT )
+% [amplitude,lambda] = simulate_amplitude_from_pdb( pdbstruct, max_x, ice_thickness, sigma_h2o, SHOW_PLOT)
 %
 % Simulate amplitude_fft for 300 keV beam. 
 %  Note that total scattering  amplitudes are dependent on atom type as
@@ -11,6 +11,10 @@ function [amplitude,lambda] = simulate_amplitude_from_pdb( pdbstruct, max_x, ice
 %  pdbstruct     = model as read in by pdbread; dimensions assemed to be Å.
 %  max_x         = (default 200 Å) 2D box size will be assumed to be +/- max_x Å.
 %  ice_thickness = (default: 20 nm) ice thickness, in nm.
+%  sigma_h2o     = (default: 2.0 Å) rms displacement in x/y of h2o beam-movement during dose.
+%                   [0.35 Å^2 for each e-/Å^2 of electron dose. So 4 Å^2.
+%                   for 10 e-/Å^2. See Mcmullan, Ultramicroscopy, 2015]
+%  SHOW_PLOT     = [default 1] show amplitude.
 %
 % Outputs
 %  amplitude = image scattered from model, dimensionless.
@@ -20,6 +24,7 @@ function [amplitude,lambda] = simulate_amplitude_from_pdb( pdbstruct, max_x, ice
 
 if ~exist( 'max_x','var') ice_thickness = 200; end;
 if ~exist( 'ice_thickness','var') ice_thickness = 20; end;
+if ~exist( 'sigma_h2o','var') sigma_h2o = 2; end;
 if ~exist( 'SHOW_PLOT','var') SHOW_PLOT = 1; end;
 
 E = 300e3; % in eV
@@ -297,7 +302,7 @@ proj_potential_h2o = sum( potential_h2o, 3) * 1e-10;
 if (ice_thickness == 0); proj_potential_h2o = 0 * proj_potential_h2o; end;
 
 % smooth by sigma_h2o Angstroms
-sigma_h2o = 1.0;
+
 scattering_amplitude_h2o = scattering_amplitude_h2o .* exp( -sigma_h2o^2 * (qx.^2+qy.^2)/2);
 proj_potential_h2o_fft = fft2( proj_potential_h2o ) .* scattering_amplitude_h2o;
     
